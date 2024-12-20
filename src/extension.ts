@@ -1,11 +1,24 @@
 import * as vscode from 'vscode';
+import { convertCase } from './convert';
 
 export function activate(context: vscode.ExtensionContext) {
-	const disposable = vscode.commands.registerCommand('case-convertor.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello World from Case Convertor!');
-	});
+	const commands = [
+        {
+            command: 'case-converter.toPrevCase',
+            handler: () => convertCase('prev'),
+            key: 'alt+a'
+        },
+		{
+            command: 'case-converter.toNextCase',
+            handler: () => convertCase('next'),
+            key: 'alt+d'
+        },
+    ];
 
-	context.subscriptions.push(disposable);
+	commands.forEach(cmd => {
+		const disposable = vscode.commands.registerCommand(cmd.command, cmd.handler);
+		context.subscriptions.push(disposable);
+	});
 }
 
 export function deactivate() {}
