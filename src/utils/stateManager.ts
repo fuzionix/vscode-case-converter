@@ -4,7 +4,6 @@ export interface SelectionInfo {
     originalText: string;
     convertedTexts: {
         upper?: string;
-        lower?: string;
         camel?: string;
         snake?: string;
         kebab?: string;
@@ -51,12 +50,10 @@ export class SelectionStateManager {
     public updateSelectionInfos(currentSelections: string[]): void {
         // Remove entries for deselected texts
         // A text is considered deselected if it doesn't match any current selection in either its original or converted forms
-        this.selectionInfos = this.selectionInfos.filter(info =>
-            currentSelections.some(selection => {
-                return selection === info.originalText ||
-                    Object.values(info.convertedTexts).includes(selection);
-            })
-        );
+        this.selectionInfos = this.selectionInfos.filter((info, index) => {
+            return currentSelections[index] === info.originalText ||
+                Object.values(info.convertedTexts).includes(currentSelections[index]);
+        });
 
         // Add new selections that don't exist in current state
         currentSelections.forEach((selection, index) => {
@@ -92,9 +89,6 @@ export class SelectionStateManager {
                 switch (caseType) {
                     case CaseType.UPPER:
                         info.convertedTexts.upper = convertedText;
-                        break;
-                    case CaseType.LOWER:
-                        info.convertedTexts.lower = convertedText;
                         break;
                     case CaseType.CAMEL:
                         info.convertedTexts.camel = convertedText;

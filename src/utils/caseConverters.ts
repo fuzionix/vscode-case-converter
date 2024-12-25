@@ -2,11 +2,11 @@ import { CaseType } from '../types';
 
 // Regex for matching words (including hyphenated and underscore-connected words)
 const WORD_REGEX = /[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*/g;
+const WORD_BOUNDARY_REGEX = /([a-z])([A-Z])/g;
 
 export const caseOrder: CaseType[] = [
     CaseType.ORIGINAL,
     CaseType.UPPER,
-    CaseType.LOWER,
     CaseType.CAMEL,
     CaseType.SNAKE,
     CaseType.KEBAB,
@@ -89,23 +89,13 @@ export function convertToCase(text: string, caseType: CaseType): string {
             case CaseType.ORIGINAL:
                 return part.text;
             case CaseType.UPPER:
-                return part.text.toUpperCase();
-            case CaseType.LOWER:
-                return part.text.toLowerCase();
+                return toUpperCase(part.text);
             case CaseType.CAMEL:
-                return part.text
-                    .toLowerCase()
-                    .replace(/[-_](.)/g, (_, char) => char.toUpperCase());
+                return toCamelCase(part.text);
             case CaseType.SNAKE:
-                return part.text
-                    .replace(/[-]/g, '_') // Convert hyphens to underscores
-                    .replace(/([a-z])([A-Z])/g, '$1_$2')
-                    .toLowerCase();
+                return toSnakeCase(part.text);
             case CaseType.KEBAB:
-                return part.text
-                    .replace(/[_]/g, '-') // Convert underscores to hyphens
-                    .replace(/([a-z])([A-Z])/g, '$1-$2')
-                    .toLowerCase();
+                return toKebabCase(part.text);
             default:
                 return part.text;
         }
@@ -131,4 +121,35 @@ export function getNextCaseType(currentCase: CaseType, direction: 'next' | 'prev
     } else {
         return caseOrder[(currentIndex - 1 + caseOrder.length) % caseOrder.length];
     }
+}
+
+function toUpperCase(text: string): string {
+    return text
+        .replace(WORD_BOUNDARY_REGEX, '$1_$2')
+        .replace(/[-]/g, '_')
+        .toUpperCase();
+}
+
+function toCamelCase(text: string): string {
+    const snakeCase = text
+        .replace(WORD_BOUNDARY_REGEX, '$1_$2')
+        .replace(/[-]/g, '_')
+        .toLowerCase();
+
+    return snakeCase
+        .replace(/_([a-z0-9])/g, (_, char) => char.toUpperCase());
+}
+
+function toSnakeCase(text: string): string {
+    return text
+        .replace(/[-]/g, '_')
+        .replace(WORD_BOUNDARY_REGEX, '$1_$2')
+        .toLowerCase();
+}
+
+function toKebabCase(text: string): string {
+    return text
+        .replace(/[_]/g, '-')
+        .replace(WORD_BOUNDARY_REGEX, '$1-$2')
+        .toLowerCase();
 }
