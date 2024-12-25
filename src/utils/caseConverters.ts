@@ -13,20 +13,33 @@ export const caseOrder: CaseType[] = [
 ];
 
 /**
- * Splits text into parts: words that should be converted and delimiters that should be preserved
- * @param text
- * @returns Array of parts with type indication
+ * Splits input text into convertible words and non-convertible delimiters
+ * Preserves the structure of the original text while identifying parts to convert
+ * 
+ * @param text - Input text to be split
+ * @returns Array of text parts, each marked as word or delimiter
+ * 
+ * @example
+ * Input: "<div class="hello-world">"
+ * Output: [
+ *   { text: "<div ", isWord: false },
+ *   { text: "class", isWord: true },
+ *   { text: "=\"", isWord: false },
+ *   { text: "hello-world", isWord: true },
+ *   { text: "\">" isWord: false }
+ * ]
  */
 export function splitTextIntoParts(text: string): Array<{ text: string, isWord: boolean }> {
     const parts: Array<{ text: string, isWord: boolean }> = [];
     let lastIndex = 0;
 
-    // Find all word matches in the text
+    // Iterate through all matches of the word pattern
     for (const match of text.matchAll(WORD_REGEX)) {
         const word = match[0];
         const startIndex = match.index!;
 
-        // Add delimiter before the word if exists
+        // If there's text between the last word and this one,
+        // add it as a delimiter (non-word part)
         if (startIndex > lastIndex) {
             parts.push({
                 text: text.slice(lastIndex, startIndex),
@@ -34,6 +47,7 @@ export function splitTextIntoParts(text: string): Array<{ text: string, isWord: 
             });
         }
 
+        // Add the matched word as a convertible part
         parts.push({
             text: word,
             isWord: true
@@ -42,7 +56,7 @@ export function splitTextIntoParts(text: string): Array<{ text: string, isWord: 
         lastIndex = startIndex + word.length;
     }
 
-    // Add remaining delimiter after last word if exists
+    // Add any remaining text after the last word as a delimiter
     if (lastIndex < text.length) {
         parts.push({
             text: text.slice(lastIndex),
@@ -53,6 +67,17 @@ export function splitTextIntoParts(text: string): Array<{ text: string, isWord: 
     return parts;
 }
 
+/**
+ * Converts text to specified case while preserving delimiters and structure
+ * 
+ * @param text - Input text to convert
+ * @param caseType - Target case type for conversion
+ * @returns Converted text with preserved structure
+ * 
+ * @example
+ * convertToCase("hello-world", CaseType.SNAKE) => "hello_world"
+ * convertToCase("hello_world", CaseType.KEBAB) => "hello-world"
+ */
 export function convertToCase(text: string, caseType: CaseType): string {
     const parts = splitTextIntoParts(text);
     return parts.map(part => {
@@ -87,7 +112,18 @@ export function convertToCase(text: string, caseType: CaseType): string {
     }).join('');
 }
 
-// Circular navigation through case types
+/**
+ * Determines the next case type in the cycle based on current case and direction
+ * Provides circular navigation through the case types
+ * 
+ * @param currentCase - Current case type
+ * @param direction - Direction to move in the cycle ('next' or 'prev')
+ * @returns Next case type in the specified direction
+ * 
+ * @example
+ * getNextCaseType(CaseType.ORIGINAL, 'next') => CaseType.UPPER
+ * getNextCaseType(CaseType.ORIGINAL, 'prev') => CaseType.KEBAB
+ */
 export function getNextCaseType(currentCase: CaseType, direction: 'next' | 'prev'): CaseType {
     const currentIndex = caseOrder.indexOf(currentCase);
     if (direction === 'next') {

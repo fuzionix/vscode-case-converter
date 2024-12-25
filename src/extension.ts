@@ -5,6 +5,13 @@ import { SelectionStateManager } from './utils/stateManager';
 // Flag to prevent state reset during conversion process
 let isConverting = false;
 
+/**
+ * Handles case conversion for selected text(s)
+ * Converts the case of selected text(s) based on the direction (previous or next case type)
+ * Maintains original text and converted states for each selection
+ * 
+ * @param direction - Direction to cycle through cases ('prev' or 'next')
+ */
 function convertCase(direction: 'prev' | 'next') {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
@@ -13,31 +20,23 @@ function convertCase(direction: 'prev' | 'next') {
 
     const stateManager = SelectionStateManager.getInstance();
     const currentCase = stateManager.getCurrentCase();
-    const originalTexts = stateManager.getOriginalTexts();
-
-    // Handle new selections by storing their current text as original
-    if (editor.selections.length !== originalTexts.length) {
-        const newOriginalTexts = editor.selections.map((selection, index) => {
-            // Keep existing original texts, add new ones
-            if (index < originalTexts.length) {
-                return originalTexts[index];
-            }
-            return editor.document.getText(selection);
-        });
-        stateManager.setOriginalTexts(newOriginalTexts);
-    }
+    const currentSelections = editor.selections.map(selection =>
+        editor.document.getText(selection)
+    );
+    stateManager.updateSelectionInfos(currentSelections);
 
     const nextCaseType = getNextCaseType(currentCase, direction);
-    const textsToConvert = stateManager.getOriginalTexts();
+    const selectionInfos = stateManager.getSelectionInfos();
 
     isConverting = true;
 
-    // Perform text replacement for all selections
+    // Apply text conversions to all selections
     editor.edit(editBuilder => {
         editor.selections.forEach((selection, index) => {
-            const originalText = textsToConvert[index];
+            const originalText = selectionInfos[index].originalText;
             const convertedText = convertToCase(originalText, nextCaseType);
             editBuilder.replace(selection, convertedText);
+            stateManager.addConvertedText(originalText, nextCaseType, convertedText);
         });
     }).then(() => {
         isConverting = false;
@@ -46,8 +45,14 @@ function convertCase(direction: 'prev' | 'next') {
     stateManager.setCurrentCase(nextCaseType);
 }
 
+/**
+ * Determines if the state should be reset based on editor selection state
+ * Returns true if there are no selections or all selections are empty (cursor positions)
+ * 
+ * @param editor - VS Code text editor instance
+ * @returns boolean indicating if state should be reset
+ */
 function shouldResetState(editor: vscode.TextEditor): boolean {
-    // Reset if no selections or all selections are empty (no highlight)
     return !editor.selections.length ||
         editor.selections.every(selection => selection.isEmpty);
 }
