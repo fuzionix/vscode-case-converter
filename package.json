@@ -2,7 +2,7 @@
   "name": "case-converter",
   "displayName": "Case Converter",
   "publisher": "Fuzionix",
-  "description": "",
+  "description": "Quick case conversion with multiple case styles support and keyboard shortcuts",
   "version": "0.0.1",
   "repository": {
     "type": "git",
