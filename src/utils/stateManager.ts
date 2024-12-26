@@ -3,7 +3,7 @@ import { CaseType } from '../types';
 export interface SelectionInfo {
     originalText: string;
     convertedTexts: {
-        upper?: string;
+        const?: string;
         camel?: string;
         snake?: string;
         kebab?: string;
@@ -18,9 +18,14 @@ export class SelectionStateManager {
     private selectionInfos: SelectionInfo[];
     private currentCase: CaseType;
 
+    private caseHistory: CaseType[]; // Stack for undo history
+    private redoStack: CaseType[];   // Stack for redo history
+
     private constructor() {
         this.selectionInfos = [];
         this.currentCase = CaseType.ORIGINAL;
+        this.caseHistory = [CaseType.ORIGINAL];
+        this.redoStack = [];
     }
 
     public static getInstance(): SelectionStateManager {
@@ -87,8 +92,8 @@ export class SelectionStateManager {
             if (info.originalText === originalText) {
                 // Store converted text in appropriate property based on case type
                 switch (caseType) {
-                    case CaseType.UPPER:
-                        info.convertedTexts.upper = convertedText;
+                    case CaseType.CONST:
+                        info.convertedTexts.const = convertedText;
                         break;
                     case CaseType.CAMEL:
                         info.convertedTexts.camel = convertedText;
@@ -105,6 +110,40 @@ export class SelectionStateManager {
     }
 
     /**
+     * Pushes a new case type to the history
+     * Clears redo stack when new changes are made
+     * @param caseType - Case type to add to history
+     */
+    public pushToHistory(caseType: CaseType): void {
+        this.caseHistory.push(caseType);
+        this.redoStack = [];
+    }
+
+    /**
+     * Handles undo operation by reverting to previous case type
+     * Moves current case to redo stack
+     */
+    public undoLastCase(): void {
+        if (this.caseHistory.length > 1) {
+            const currentCase = this.caseHistory.pop()!;
+            this.redoStack.push(currentCase);
+            this.currentCase = this.caseHistory[this.caseHistory.length - 1];
+        }
+    }
+
+    /**
+     * Handles redo operation by restoring previously undone case type
+     * Moves redone case back to history
+     */
+    public redoLastCase(): void {
+        if (this.redoStack.length > 0) {
+            const nextCase = this.redoStack.pop()!;
+            this.caseHistory.push(nextCase);
+            this.currentCase = nextCase;
+        }
+    }
+
+    /**
      * Resets the state manager to initial state
      * Clears all selection information and resets case type
      */
@@ -112,5 +151,7 @@ export class SelectionStateManager {
         console.log('STATE RESET');
         this.selectionInfos = [];
         this.currentCase = CaseType.ORIGINAL;
+        this.caseHistory = [CaseType.ORIGINAL];
+        this.redoStack = [];
     }
 }

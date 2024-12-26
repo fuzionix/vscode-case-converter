@@ -39,10 +39,11 @@ function convertCase(direction: 'prev' | 'next') {
             stateManager.addConvertedText(originalText, nextCaseType, convertedText);
         });
     }).then(() => {
+        stateManager.pushToHistory(nextCaseType);
+        stateManager.setCurrentCase(nextCaseType);
         isConverting = false;
     });
 
-    stateManager.setCurrentCase(nextCaseType);
 }
 
 /**
@@ -66,6 +67,25 @@ export function activate(context: vscode.ExtensionContext) {
             if (!isConverting && event.textEditor) {
                 if (shouldResetState(event.textEditor)) {
                     stateManager.reset();
+                }
+            }
+        })
+    );
+
+    // Listen for document changes to handle undo/redo
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeTextDocument((event) => {
+            if (!isConverting && event.contentChanges.length > 0) {
+                const undoRedo = event.reason === vscode.TextDocumentChangeReason.Undo ||
+                    event.reason === vscode.TextDocumentChangeReason.Redo;
+
+                if (undoRedo) {
+                    // Pop the current state and restore previous state
+                    if (event.reason === vscode.TextDocumentChangeReason.Undo) {
+                        stateManager.undoLastCase();
+                    } else {
+                        stateManager.redoLastCase();
+                    }
                 }
             }
         })

@@ -6,7 +6,7 @@ const WORD_BOUNDARY_REGEX = /([a-z])([A-Z])/g;
 
 export const caseOrder: CaseType[] = [
     CaseType.ORIGINAL,
-    CaseType.UPPER,
+    CaseType.CONST,
     CaseType.CAMEL,
     CaseType.SNAKE,
     CaseType.KEBAB,
@@ -88,8 +88,8 @@ export function convertToCase(text: string, caseType: CaseType): string {
         switch (caseType) {
             case CaseType.ORIGINAL:
                 return part.text;
-            case CaseType.UPPER:
-                return toUpperCase(part.text);
+            case CaseType.CONST:
+                return toConstCase(part.text);
             case CaseType.CAMEL:
                 return toCamelCase(part.text);
             case CaseType.SNAKE:
@@ -111,7 +111,7 @@ export function convertToCase(text: string, caseType: CaseType): string {
  * @returns Next case type in the specified direction
  * 
  * @example
- * getNextCaseType(CaseType.ORIGINAL, 'next') => CaseType.UPPER
+ * getNextCaseType(CaseType.ORIGINAL, 'next') => CaseType.CONST
  * getNextCaseType(CaseType.ORIGINAL, 'prev') => CaseType.KEBAB
  */
 export function getNextCaseType(currentCase: CaseType, direction: 'next' | 'prev'): CaseType {
@@ -123,7 +123,7 @@ export function getNextCaseType(currentCase: CaseType, direction: 'next' | 'prev
     }
 }
 
-function toUpperCase(text: string): string {
+function toConstCase(text: string): string {
     return text
         .replace(WORD_BOUNDARY_REGEX, '$1_$2')
         .replace(/[-]/g, '_')

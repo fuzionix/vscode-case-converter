@@ -1,6 +1,6 @@
 export enum CaseType {
     ORIGINAL = 'original',
-    UPPER = 'upper',
+    CONST = 'const',
     CAMEL = 'camel',
     SNAKE = 'snake',
     KEBAB = 'kebab',
