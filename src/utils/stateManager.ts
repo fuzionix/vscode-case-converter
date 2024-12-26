@@ -1,13 +1,8 @@
-import { CaseType } from '../types';
+import { CaseType, ConvertedTexts, ConvertibleCaseType } from '../types';
 
 export interface SelectionInfo {
     originalText: string;
-    convertedTexts: {
-        const?: string;
-        camel?: string;
-        snake?: string;
-        kebab?: string;
-    }
+    convertedTexts: ConvertedTexts;
 }
 
 /**
@@ -89,22 +84,9 @@ export class SelectionStateManager {
      */
     public addConvertedText(originalText: string, caseType: CaseType, convertedText: string): void {
         this.selectionInfos.forEach(info => {
-            if (info.originalText === originalText) {
+            if (info.originalText === originalText && caseType !== CaseType.ORIGINAL) {
                 // Store converted text in appropriate property based on case type
-                switch (caseType) {
-                    case CaseType.CONST:
-                        info.convertedTexts.const = convertedText;
-                        break;
-                    case CaseType.CAMEL:
-                        info.convertedTexts.camel = convertedText;
-                        break;
-                    case CaseType.SNAKE:
-                        info.convertedTexts.snake = convertedText;
-                        break;
-                    case CaseType.KEBAB:
-                        info.convertedTexts.kebab = convertedText;
-                        break;
-                }
+                info.convertedTexts[caseType as ConvertibleCaseType] = convertedText;
             }
         });
     }

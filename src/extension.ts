@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { convertToCase, getNextCaseType } from './utils/caseConverters';
+import { convertToCase, getNextCaseType, caseOrder } from './utils/caseConverters';
 import { SelectionStateManager } from './utils/stateManager';
+import { CaseType, ConvertibleCaseType } from './types';
 
 // Flag to prevent state reset during conversion process
 let isConverting = false;
@@ -25,25 +26,40 @@ function convertCase(direction: 'prev' | 'next') {
     );
     stateManager.updateSelectionInfos(currentSelections);
 
-    const nextCaseType = getNextCaseType(currentCase, direction);
+    let nextCaseType = getNextCaseType(currentCase, direction);
     const selectionInfos = stateManager.getSelectionInfos();
 
     isConverting = true;
 
     // Apply text conversions to all selections
-    editor.edit(editBuilder => {
-        editor.selections.forEach((selection, index) => {
-            const originalText = selectionInfos[index].originalText;
-            const convertedText = convertToCase(originalText, nextCaseType);
-            editBuilder.replace(selection, convertedText);
-            stateManager.addConvertedText(originalText, nextCaseType, convertedText);
+    const applyConversion = (counter = 0) => {
+        editor.edit(editBuilder => {
+            const allIdentical = [] as boolean[];
+            editor.selections.forEach((selection, index) => {
+                const originalText = selectionInfos[index].originalText;
+                const previousText = currentCase !== CaseType.ORIGINAL
+                    ? selectionInfos[index].convertedTexts[currentCase as ConvertibleCaseType]
+                    : originalText;
+                const convertedText = convertToCase(originalText, nextCaseType);
+                allIdentical.push(previousText === convertedText);
+                editBuilder.replace(selection, convertedText);
+                stateManager.addConvertedText(originalText, nextCaseType, convertedText);
+            });
+            if (counter < caseOrder.length) {
+                // If all selections are identical, move to the next case in the cycle
+                if (allIdentical.every(isIdentical => isIdentical)) {
+                    nextCaseType = getNextCaseType(nextCaseType, direction);
+                    applyConversion(++counter);
+                }
+            }
+        }).then(() => {
+            stateManager.pushToHistory(nextCaseType);
+            stateManager.setCurrentCase(nextCaseType);
+            isConverting = false;
         });
-    }).then(() => {
-        stateManager.pushToHistory(nextCaseType);
-        stateManager.setCurrentCase(nextCaseType);
-        isConverting = false;
-    });
+    };
 
+    applyConversion();
 }
 
 /**

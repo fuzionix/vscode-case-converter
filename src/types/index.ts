@@ -5,3 +5,9 @@ export enum CaseType {
     SNAKE = 'snake',
     KEBAB = 'kebab',
 }
+
+export type ConvertibleCaseType = Exclude<CaseType, CaseType.ORIGINAL>;
+
+export type ConvertedTexts = {
+    [key in ConvertibleCaseType]?: string;
+};
