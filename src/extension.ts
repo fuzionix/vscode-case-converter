@@ -5,6 +5,7 @@ import { CaseType, ConvertibleCaseType } from './types';
 
 // Flag to prevent state reset during conversion process
 let isConverting = false;
+let onDidChangeSelectionDisposable: vscode.Disposable | null = null;
 
 /**
  * Handles case conversion for selected text(s)
@@ -13,7 +14,7 @@ let isConverting = false;
  * 
  * @param direction - Direction to cycle through cases ('prev' or 'next')
  */
-function convertCase(direction: 'prev' | 'next') {
+function convertCase(direction: 'prev' | 'next'): void {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         return;
@@ -29,12 +30,13 @@ function convertCase(direction: 'prev' | 'next') {
     let nextCaseType = getNextCaseType(currentCase, direction);
     const selectionInfos = stateManager.getSelectionInfos();
 
+    subscribeSelectionListener();
     isConverting = true;
 
     // Apply text conversions to all selections
     const applyConversion = (counter = 0) => {
         editor.edit(editBuilder => {
-            const allIdentical = [] as boolean[];
+            const allIdentical: boolean[] = [];
             editor.selections.forEach((selection, index) => {
                 const originalText = selectionInfos[index].originalText;
                 const previousText = currentCase !== CaseType.ORIGINAL
@@ -78,15 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
     const stateManager = SelectionStateManager.getInstance();
 
     // Reset state when finished, but not during active conversion
-    context.subscriptions.push(
-        vscode.window.onDidChangeTextEditorSelection((event) => {
-            if (!isConverting && event.textEditor) {
-                if (shouldResetState(event.textEditor)) {
-                    stateManager.reset();
-                }
-            }
-        })
-    );
+    subscribeSelectionListener();
 
     // Listen for document changes to handle undo/redo
     context.subscriptions.push(
@@ -126,7 +120,29 @@ export function activate(context: vscode.ExtensionContext) {
     });
 }
 
+function subscribeSelectionListener() {
+    if (!onDidChangeSelectionDisposable) {
+        onDidChangeSelectionDisposable = vscode.window.onDidChangeTextEditorSelection((event) => {
+            if (!isConverting && event.textEditor) {
+                if (shouldResetState(event.textEditor)) {
+                    const stateManager = SelectionStateManager.getInstance();
+                    stateManager.reset();
+                    unsubscribeSelectionListener();
+                }
+            }
+        });
+    }
+}
+
+function unsubscribeSelectionListener() {
+    if (onDidChangeSelectionDisposable) {
+        onDidChangeSelectionDisposable.dispose();
+        onDidChangeSelectionDisposable = null;
+    }
+}
+
 export function deactivate() {
     SelectionStateManager.getInstance().reset();
     isConverting = false;
+    unsubscribeSelectionListener();
 }
