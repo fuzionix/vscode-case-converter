@@ -126,8 +126,10 @@ function subscribeSelectionListener() {
             if (!isConverting && event.textEditor) {
                 if (shouldResetState(event.textEditor)) {
                     const stateManager = SelectionStateManager.getInstance();
+                    const currentCase = stateManager.getCurrentCase();
                     stateManager.reset();
                     unsubscribeSelectionListener();
+                    showConversionPopup(currentCase);
                 }
             }
         });
@@ -139,6 +141,24 @@ function unsubscribeSelectionListener() {
         onDidChangeSelectionDisposable.dispose();
         onDidChangeSelectionDisposable = null;
     }
+}
+
+/**
+ * Shows a popup message with undo option
+ * Returns to original case when undo button is clicked
+ * 
+ * @param caseType - The current case type after conversion
+ */
+function showConversionPopup(caseType: CaseType) {
+    vscode.window.showInformationMessage(
+        `🔄 | Converted to ${caseType.toUpperCase()} case`,
+        { modal: false },
+        'Undo'
+    ).then(selection => {
+        if (selection === 'Undo') {
+            vscode.commands.executeCommand('undo');
+        }
+    });
 }
 
 export function deactivate() {
