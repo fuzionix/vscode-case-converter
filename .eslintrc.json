@@ -6,7 +6,8 @@
         "sourceType": "module"
     },
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "unicorn"
     ],
     "rules": {
         "@typescript-eslint/naming-convention": [
@@ -20,7 +21,9 @@
         "curly": "warn",
         "eqeqeq": "warn",
         "no-throw-literal": "warn",
-        "semi": "off"
+        "semi": "off",
+        "unicorn/no-useless-switch-case": "warn",
+        "unicorn/no-lonely-if": "warn"
     },
     "ignorePatterns": [
         "out",

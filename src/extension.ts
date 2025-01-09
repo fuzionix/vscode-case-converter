@@ -52,6 +52,8 @@ function convertCase(direction: 'prev' | 'next'): void {
                 if (allIdentical.every(isIdentical => isIdentical)) {
                     nextCaseType = getNextCaseType(nextCaseType, direction);
                     applyConversion(++counter);
+                } else {
+                    isConverting = false;
                 }
             }
         }).then(() => {
@@ -123,14 +125,12 @@ export function activate(context: vscode.ExtensionContext) {
 function subscribeSelectionListener() {
     if (!onDidChangeSelectionDisposable) {
         onDidChangeSelectionDisposable = vscode.window.onDidChangeTextEditorSelection((event) => {
-            if (!isConverting && event.textEditor) {
-                if (shouldResetState(event.textEditor)) {
-                    const stateManager = SelectionStateManager.getInstance();
-                    const currentCase = stateManager.getCurrentCase();
-                    stateManager.reset();
-                    unsubscribeSelectionListener();
-                    showConversionPopup(currentCase);
-                }
+            if (!isConverting && event.textEditor && shouldResetState(event.textEditor)) {
+                const stateManager = SelectionStateManager.getInstance();
+                const currentCase = stateManager.getCurrentCase();
+                stateManager.reset();
+                unsubscribeSelectionListener();
+                showConversionPopup(currentCase);
             }
         });
     }
