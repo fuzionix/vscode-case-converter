@@ -150,6 +150,13 @@ function unsubscribeSelectionListener() {
  * @param caseType - The current case type after conversion
  */
 function showConversionPopup(caseType: CaseType) {
+    const config = vscode.workspace.getConfiguration('caseConverter');
+    const showPopup = config.get<boolean>('showPopup', true);
+
+    if (!showPopup) {
+        return;
+    }
+
     vscode.window.showInformationMessage(
         `🔄 | Converted to ${caseType.toUpperCase()} case`,
         { modal: false },

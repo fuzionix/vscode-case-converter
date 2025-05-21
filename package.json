@@ -46,7 +46,17 @@
         "key": "alt+d",
         "when": "editorTextFocus"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Case Converter",
+      "properties": {
+        "caseConverter.showPopup": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show notification popup when case conversion is performed"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
