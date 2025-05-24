@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { convertToCase, getNextCaseType, caseOrder } from './utils/caseConverters';
+import { convertToCase, getNextCaseType, getCaseCycle } from './utils/caseConverters';
 import { SelectionStateManager } from './utils/stateManager';
 import { CaseType, ConvertibleCaseType } from './types';
 
@@ -29,6 +29,7 @@ function convertCase(direction: 'prev' | 'next'): void {
 
     let nextCaseType = getNextCaseType(currentCase, direction);
     const selectionInfos = stateManager.getSelectionInfos();
+    const caseOrder = getCaseCycle();
 
     subscribeSelectionListener();
     isConverting = true;
@@ -103,6 +104,14 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration((event) => {
+            if (event.affectsConfiguration('caseConverter.caseCycle')) {
+                stateManager.reset();
+            }
+        })
+    );
+
     const commands = [
         {
             command: 'case-converter.toPrevCase',
@@ -153,7 +162,7 @@ function showConversionPopup(caseType: CaseType) {
     const config = vscode.workspace.getConfiguration('caseConverter');
     const showPopup = config.get<boolean>('showPopup', true);
 
-    if (!showPopup) {
+    if (!showPopup || caseType === CaseType.ORIGINAL) {
         return;
     }
 

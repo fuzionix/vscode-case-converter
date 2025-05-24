@@ -1,16 +1,33 @@
-import { CaseType } from '../types';
+import * as vscode from 'vscode';
+import { CaseType, CaseTypeString } from '../types';
 
 // Regex for matching words (including hyphenated and underscore-connected words)
 const WORD_REGEX = /[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*/g;
 const WORD_BOUNDARY_REGEX = /([a-z])([A-Z])/g;
 
-export const caseOrder: CaseType[] = [
-    CaseType.ORIGINAL,
-    CaseType.CONST,
-    CaseType.CAMEL,
-    CaseType.SNAKE,
-    CaseType.KEBAB,
-];
+/**
+ * Gets the configured case cycle from settings
+ * Ensures at least original case and one other case are included
+ */
+export function getCaseCycle(): CaseType[] {
+    const config = vscode.workspace.getConfiguration('caseConverter');
+    const configuredCases = config.get<CaseTypeString[]>('caseCycle', [
+        'original', 'const', 'camel', 'snake', 'kebab'
+    ]);
+
+    let caseOrder = configuredCases.map(caseType => CaseType[caseType.toUpperCase() as keyof typeof CaseType]);
+
+    if (!caseOrder.includes(CaseType.ORIGINAL)) {
+        caseOrder.unshift(CaseType.ORIGINAL);
+    }
+
+    if (caseOrder.length < 2) {
+        caseOrder.push(CaseType.CONST);
+    }
+
+    caseOrder = [...new Set(caseOrder)];
+    return caseOrder;
+}
 
 /**
  * Splits input text into convertible words and non-convertible delimiters
@@ -88,6 +105,8 @@ export function convertToCase(text: string, caseType: CaseType): string {
         switch (caseType) {
             case CaseType.ORIGINAL:
                 return part.text;
+            case CaseType.PASCAL:
+                return toPascalCase(part.text);
             case CaseType.CONST:
                 return toConstCase(part.text);
             case CaseType.CAMEL:
@@ -115,12 +134,23 @@ export function convertToCase(text: string, caseType: CaseType): string {
  * getNextCaseType(CaseType.ORIGINAL, 'prev') => CaseType.KEBAB
  */
 export function getNextCaseType(currentCase: CaseType, direction: 'next' | 'prev'): CaseType {
+    const caseOrder = getCaseCycle();
     const currentIndex = caseOrder.indexOf(currentCase);
+
+    if (currentIndex === -1) {
+        return direction === 'next' ? caseOrder[0] : caseOrder[caseOrder.length - 1];
+    }
+
     if (direction === 'next') {
         return caseOrder[(currentIndex + 1) % caseOrder.length];
     } else {
         return caseOrder[(currentIndex - 1 + caseOrder.length) % caseOrder.length];
     }
+}
+
+function toPascalCase(text: string): string {
+    const camelCase = toCamelCase(text);
+    return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
 }
 
 function toConstCase(text: string): string {

@@ -54,6 +54,28 @@
           "type": "boolean",
           "default": false,
           "description": "Show notification popup when case conversion is performed"
+        },
+        "caseConverter.caseCycle": {
+          "type": "array",
+          "default": [
+            "original",
+            "const",
+            "camel",
+            "snake",
+            "kebab"
+          ],
+          "description": "Configure the order of cases to cycle through",
+          "items": {
+            "type": "string",
+            "enum": [
+              "original",
+              "const",
+              "camel",
+              "pascal",
+              "snake",
+              "kebab"
+            ]
+          }
         }
       }
     }
