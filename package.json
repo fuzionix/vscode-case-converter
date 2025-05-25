@@ -33,6 +33,30 @@
       {
         "command": "case-converter.toNextCase",
         "title": "Convert to Next Case"
+      },
+      {
+        "command": "case-converter.toOriginalCase",
+        "title": "Original Case"
+      },
+      {
+        "command": "case-converter.toConstCase",
+        "title": "CONSTANT_CASE"
+      },
+      {
+        "command": "case-converter.toPascalCase",
+        "title": "PascalCase"
+      },
+      {
+        "command": "case-converter.toCamelCase",
+        "title": "camelCase"
+      },
+      {
+        "command": "case-converter.toSnakeCase",
+        "title": "snake_case"
+      },
+      {
+        "command": "case-converter.toKebabCase",
+        "title": "kebab-case"
       }
     ],
     "keybindings": [
@@ -78,7 +102,47 @@
           }
         }
       }
-    }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "submenu": "case-converter.caseMenu",
+          "group": "1_modification@500"
+        }
+      ],
+      "case-converter.caseMenu": [
+        {
+          "command": "case-converter.toOriginalCase",
+          "group": "1_cases@1"
+        },
+        {
+          "command": "case-converter.toConstCase",
+          "group": "1_cases@2"
+        },
+        {
+          "command": "case-converter.toPascalCase",
+          "group": "1_cases@3"
+        },
+        {
+          "command": "case-converter.toCamelCase",
+          "group": "1_cases@4"
+        },
+        {
+          "command": "case-converter.toSnakeCase",
+          "group": "1_cases@5"
+        },
+        {
+          "command": "case-converter.toKebabCase",
+          "group": "1_cases@6"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "case-converter.caseMenu",
+        "label": "Convert Case"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

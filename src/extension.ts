@@ -68,6 +68,41 @@ function convertCase(direction: 'prev' | 'next'): void {
 }
 
 /**
+ * Converts selected text to a specific case type
+ * 
+ * @param targetCase - The specific case type to convert to
+ */
+function convertToSpecificCase(targetCase: CaseType): void {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        return;
+    }
+
+    const stateManager = SelectionStateManager.getInstance();
+    const currentSelections = editor.selections.map(selection =>
+        editor.document.getText(selection)
+    );
+    stateManager.updateSelectionInfos(currentSelections);
+    const selectionInfos = stateManager.getSelectionInfos();
+
+    subscribeSelectionListener();
+    isConverting = true;
+
+    editor.edit(editBuilder => {
+        editor.selections.forEach((selection, index) => {
+            const originalText = selectionInfos[index].originalText;
+            const convertedText = convertToCase(originalText, targetCase);
+            editBuilder.replace(selection, convertedText);
+            stateManager.addConvertedText(originalText, targetCase, convertedText);
+        });
+    }).then(() => {
+        stateManager.pushToHistory(targetCase);
+        stateManager.setCurrentCase(targetCase);
+        isConverting = false;
+    });
+}
+
+/**
  * Determines if the state should be reset based on editor selection state
  * Returns true if there are no selections or all selections are empty (cursor positions)
  * 
@@ -112,7 +147,7 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    const commands = [
+    const cycleCommands = [
         {
             command: 'case-converter.toPrevCase',
             handler: () => convertCase('prev'),
@@ -125,7 +160,34 @@ export function activate(context: vscode.ExtensionContext) {
         },
     ];
 
-    commands.forEach(cmd => {
+    const caseCommands = [
+        {
+            command: 'case-converter.toOriginalCase',
+            handler: () => convertToSpecificCase(CaseType.ORIGINAL)
+        },
+        {
+            command: 'case-converter.toConstCase',
+            handler: () => convertToSpecificCase(CaseType.CONST)
+        },
+        {
+            command: 'case-converter.toPascalCase',
+            handler: () => convertToSpecificCase(CaseType.PASCAL)
+        },
+        {
+            command: 'case-converter.toCamelCase',
+            handler: () => convertToSpecificCase(CaseType.CAMEL)
+        },
+        {
+            command: 'case-converter.toSnakeCase',
+            handler: () => convertToSpecificCase(CaseType.SNAKE)
+        },
+        {
+            command: 'case-converter.toKebabCase',
+            handler: () => convertToSpecificCase(CaseType.KEBAB)
+        }
+    ];
+
+    [...cycleCommands, ...caseCommands].forEach(cmd => {
         const disposable = vscode.commands.registerCommand(cmd.command, cmd.handler);
         context.subscriptions.push(disposable);
     });
