@@ -15,13 +15,13 @@ Quick case conversion with multiple case styles by keyboard shortcuts
 </br>
 
 <p align="center">
-  <img src="media/demo.gif" alt="Gif Demo" width="640" />
+  <img src="media/CaseConvertorFlowchart.png" alt="Case Converter Logo" width="800" />
 </p>
 
 </br>
 
 <p align="center">
-  <img src="media/CaseConvertorFlowchart.png" alt="Case Converter Logo" width="640" />
+  <img src="media/demo.gif" alt="Gif Demo" width="800" />
 </p>
 
 ## ✨ Features
@@ -31,7 +31,7 @@ Quick case conversion with multiple case styles by keyboard shortcuts
 - 💾 Remember original text for easy reversion
 - 📌 Right-click context menu for direct case conversion
 
-## 🚀 Usage
+## 🧰 Usage
 
 ### Keyboard Shortcuts
 
@@ -70,12 +70,12 @@ Convert between various case styles with a single keyboard shortcut:
 
 - `hello world` → `HELLO_WORLD` → `helloWorld` → `hello_world` → `hello-world` → (Back to `hello world`)
 
-## Feedback & Contributions
+## 📮 Feedback & Contributions
 
 We welcome your feedback and contributions! Please report any issues or suggestions through:
 - The "Report an Issue" command in VS Code
 - Our [GitHub repository](https://github.com/fuzionix/vscode-case-converter/issues)
 
-## License
+## 📑 License
 
 This extension is licensed under the [MIT License](LICENSE).
