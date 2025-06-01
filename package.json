@@ -1,9 +1,9 @@
 {
-  "name": "case-converter",
-  "displayName": "Case Converter",
+  "name": "code-case-converter",
+  "displayName": "Code Case Converter",
   "publisher": "Fuzionix",
   "description": "Quick case conversion with multiple case styles support and keyboard shortcuts",
-  "version": "0.0.1",
+  "version": "1.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/fuzionix/vscode-case-converter.git"
@@ -20,8 +20,14 @@
     "converter",
     "text",
     "case",
-    "case-change"
+    "case-change",
+    "code"
   ],
+  "icon": "media/Logo.png",
+  "bugs": {
+    "url": "https://github.com/fuzionix/vscode-case-converter/issues"
+  },
+  "homepage": "https://github.com/fuzionix/vscode-case-converter",
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
